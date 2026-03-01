@@ -151,7 +151,16 @@
 </footer>
 
 <script>
-const API       = 'https://api.tzevaadom.co.il/notifications';
+const API = new URLSearchParams(location.search).get('api') || 'https://api.tzevaadom.co.il/notifications';
+const IS_TEST = new URLSearchParams(location.search).has('api');
+
+// show test mode banner
+if (IS_TEST) {
+  const banner = document.createElement('div');
+  banner.style.cssText = 'width:100%;max-width:640px;background:rgba(45,198,83,.08);border:1px solid rgba(45,198,83,.3);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--green);margin-bottom:12px;font-family:var(--mono)';
+  banner.innerHTML = `🧪 <strong>TEST MODE</strong> · API: <span style="word-break:break-all">${API}</span>`;
+  document.querySelector('.disclaimer').after(banner);
+}
 const STORE     = 'oref_city_v2';
 const STALE_MS  = 20 * 1000; // התראה רלוונטית רק אם ≤ 20 שניות
 
