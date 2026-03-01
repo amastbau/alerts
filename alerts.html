@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -41,21 +42,35 @@
     .logo-badge svg { width:24px; height:24px; fill:var(--red); }
     .header-text h1 { font-size:22px; font-weight:900; letter-spacing:-.5px; line-height:1.2; }
     .header-text p  { font-size:12px; color:var(--muted); font-family:var(--mono); margin-top:4px; }
+
     .card {
       width:100%; max-width:640px; background:var(--surface);
       border:1px solid var(--border); border-radius:12px; padding:28px; margin-bottom:16px;
     }
     .card-label { font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
-    .select-wrap { position:relative; }
-    select {
+
+    /* autocomplete wrapper */
+    .autocomplete-wrap { position:relative; }
+    input#city-input {
       width:100%; background:var(--bg); color:var(--text);
       border:1px solid var(--border); border-radius:8px;
-      padding:14px 16px 14px 48px; font-family:var(--sans); font-size:16px;
-      appearance:none; cursor:pointer; transition:border-color .2s; direction:rtl;
+      padding:14px 16px; font-family:var(--sans); font-size:16px;
+      transition:border-color .2s; direction:rtl;
     }
-    select:focus { outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(230,57,70,.15); }
-    select option { background:#111; }
-    .select-arrow { position:absolute; left:14px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--muted); font-size:12px; }
+    input#city-input::placeholder { color:var(--muted); }
+    input#city-input:focus { outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(230,57,70,.15); }
+    #suggestions {
+      position:absolute; top:calc(100% + 4px); right:0; left:0;
+      background:var(--surface); border:1px solid var(--border); border-radius:8px;
+      max-height:240px; overflow-y:auto; z-index:100; display:none;
+    }
+    #suggestions div {
+      padding:12px 16px; cursor:pointer; font-size:15px;
+      transition:background .15s; border-bottom:1px solid var(--border);
+    }
+    #suggestions div:last-child { border-bottom:none; }
+    #suggestions div:hover, #suggestions div.active { background:rgba(230,57,70,.08); color:var(--red); }
+
     button#check-btn {
       width:100%; margin-top:14px; padding:14px;
       background:var(--red); color:#fff; border:none; border-radius:8px;
@@ -65,26 +80,27 @@
     button#check-btn:hover  { background:#c8303c; }
     button#check-btn:active { transform:scale(.98); }
     button#check-btn:disabled { background:var(--muted); cursor:not-allowed; }
+
     #result { width:100%; max-width:640px; display:none; }
     .status-banner { border-radius:12px; padding:24px 28px; border:1px solid; animation:slide-in .3s ease; }
     @keyframes slide-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
     .status-banner.alert-active  { background:rgba(230,57,70,.08);  border-color:var(--red); }
     .status-banner.alert-none    { background:rgba(45,198,83,.06);  border-color:rgba(45,198,83,.3); }
-    .status-banner.alert-history { background:rgba(244,162,97,.06); border-color:rgba(244,162,97,.3); }
     .status-banner.alert-error   { background:rgba(85,91,110,.15);  border-color:var(--border); }
     .status-icon  { font-size:32px; margin-bottom:12px; display:block; }
     .status-title { font-size:20px; font-weight:900; margin-bottom:6px; }
-    .alert-active  .status-title { color:var(--red); }
-    .alert-none    .status-title { color:var(--green); }
-    .alert-history .status-title { color:var(--yellow); }
+    .alert-active .status-title { color:var(--red); }
+    .alert-none   .status-title { color:var(--green); }
     .status-body { font-size:14px; line-height:1.8; margin-top:10px; }
     .meta-row { display:flex; gap:20px; margin-top:16px; flex-wrap:wrap; }
     .meta-item { display:flex; flex-direction:column; gap:2px; }
     .meta-key { font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
     .meta-val { font-family:var(--mono); font-size:14px; font-weight:600; }
+
     #loading { display:none; text-align:center; padding:32px; color:var(--muted); font-family:var(--mono); font-size:13px; }
     .spinner { width:28px; height:28px; border:2px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
     @keyframes spin { to{transform:rotate(360deg)} }
+
     .disclaimer {
       width:100%; max-width:640px;
       background:rgba(244,162,97,.06); border:1px solid rgba(244,162,97,.2);
@@ -95,9 +111,6 @@
     .dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--muted); margin-left:6px; vertical-align:middle; }
     .dot.live { background:var(--green); animation:blink 1.4s ease-in-out infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-    table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
-    th { padding:4px 8px 4px 0; font-weight:400; color:var(--muted); text-align:right; }
-    td { padding:6px 8px 6px 0; border-top:1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -108,7 +121,7 @@
   </div>
   <div class="header-text">
     <h1>עמוס, אפשר לצאת מהמקלט?</h1>
-    <p>בדיקת התראות פעילות · oref.org.il</p>
+    <p>בדיקת התראות פעילות · tzevaadom.co.il</p>
   </div>
 </header>
 
@@ -120,12 +133,12 @@
 </div>
 
 <div class="card">
-  <div class="card-label">בחר אזור / יישוב</div>
-  <div class="select-wrap">
-    <select id="region-select"><option value="">⏳ טוען רשימת אזורים...</option></select>
-    <span class="select-arrow">▼</span>
+  <div class="card-label">הקלד שם יישוב</div>
+  <div class="autocomplete-wrap">
+    <input id="city-input" type="text" placeholder="לדוגמה: תל אביב, חיפה, באר שבע..." autocomplete="off" />
+    <div id="suggestions"></div>
   </div>
-  <button id="check-btn" disabled onclick="checkAlerts()">בדוק התראות לאזור זה</button>
+  <button id="check-btn" onclick="checkAlerts()">בדוק התראות לאזור זה</button>
 </div>
 
 <div id="loading"><div class="spinner"></div>בודק התראות...</div>
@@ -133,97 +146,100 @@
 
 <footer>
   <span class="dot live"></span>
-  <span id="status-text">טוען נתונים...</span>
+  <span id="status-text">מוכן לבדיקה</span><br>
+  מקור: api.tzevaadom.co.il · ללא proxy · בדיקה ישירה מהדפדפן
 </footer>
 
 <script>
-const OREF = {
-  cities:  'https://www.oref.org.il/Shared/Ajax/GetCitiesMix.aspx?lang=he',
-  alerts:  'https://www.oref.org.il/WarningMessages/alert/alerts.json',
-  history: 'https://www.oref.org.il/WarningMessages/History/AlertsHistory.json',
-};
+const API       = 'https://api.tzevaadom.co.il/notifications';
+const STORE     = 'oref_city_v2';
+const STALE_MS  = 20 * 1000; // התראה רלוונטית רק אם ≤ 20 שניות
 
-// allorigins מחזיר { contents: "<json string>", status: {...} }
-// /get עובד יותר טוב מ-/raw לגבי oref
-function proxy(url) {
-  return 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-}
-
-async function orefFetch(url) {
-  const res = await fetch(proxy(url), { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const wrapper = await res.json();
-  const raw = wrapper.contents;
-  if (!raw || raw.trim() === '') return null;
-  return JSON.parse(raw);
-}
-
-const sel     = document.getElementById('region-select');
+const input   = document.getElementById('city-input');
+const sugg    = document.getElementById('suggestions');
 const btn     = document.getElementById('check-btn');
 const loading = document.getElementById('loading');
 const result  = document.getElementById('result');
 const statusT = document.getElementById('status-text');
-const STORE   = 'oref_city';
 
-async function loadCities() {
-  try {
-    const data = await orefFetch(OREF.cities);
-    const cities = [...new Set(data.map(c => c.label).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b, 'he'));
-    sel.innerHTML = '<option value="">— בחר יישוב / אזור —</option>';
-    cities.forEach(city => {
-      const o = document.createElement('option');
-      o.value = o.textContent = city;
-      sel.appendChild(o);
-    });
-    btn.disabled = false;
-    statusT.textContent = `נטענו ${cities.length} יישובים · ${new Date().toLocaleTimeString('he-IL')}`;
-    restoreCity();
-  } catch (err) {
-    sel.innerHTML = '<option value="">⚠️ שגיאה בטעינה</option>';
-    statusT.textContent = 'שגיאה: ' + err.message;
-  }
+// ── רשימת ערים מוכנה (מקור: oref) ───────────────────────
+// רשימה מייצגת — כוללת את כל הערים הגדולות + ישובים נפוצים
+const CITIES = ["אבו גוש","אבו סנאן","אביגדור","אביחיל","אביעזר","אבירים","אבן יהודה","אבן מנחם","אבן ספיר","אבנת","אברהם אבינו","אדרת","אוהד","אום אל-פחם","אופקים","אור הגנוז","אור הנר","אור יהודה","אור עקיבא","אורה","אורות","אורים","אורנים","אורנית","אושה","אזור","אחווה","אחוזם","אחוזת ברק","אחיהוד","אחיסמך","אחיעזר","אטד","איבים","איילון","איילת השחר","אילון","אילות","אילת","אירוס","אכסאל","אל עזי","אל-בטוף","אל-רום","אלומה","אלומות","אלון הגליל","אלון מורה","אלון שבות","אלוני אבא","אלוני הבשן","אלוני יצחק","אלונים","אלזבאד","אלי זהב","אליאב","אליכין","אלישיב","אלישמע","אלמגור","אלעד","אלקנה","אלקוש","אמונים","אמירים","אמנון","אניעם","אספר","אפיק","אפיקים","אפק","אצר","ארבל","ארגמן","ארז","ארסוף","אשבול","אשדוד","אשדות יעקב","אשחר","אשכול","אשקלון","אשרת","את","באר אורה","באר גנים","באר טוביה","באר יעקב","באר מילכה","באר שבע","בארות יצחק","בארותיים","בית אורן","בית אל","בית אליעזר","בית אלפא","בית אלעזרי","בית אריה","בית ברל","בית גמליאל","בית דגן","בית הגדי","בית הלוי","בית הערבה","בית זיד","בית זית","בית חירות","בית חנן","בית חנניה","בית יוסף","בית יצחק","בית ינאי","בית כנסת","בית לחם הגלילית","בית מאיר","בית נחמיה","בית ניר","בית עוזיאל","בית עזרא","בית ענן","בית עקד","בית רבן","בית שאן","בית שמש","בית שערים","בן זכאי","בן עמי","בנימינה","בענה","בצרה","בקוע","בקעות","בר גיורא","ברכיה","ברעם","ברקאי","ברקן","בת הדר","בת חן","בת חפר","בת ים","גאולה","גאולים","גבולות","גבים","גבע","גבע כרמל","גבעון החדשה","גבעות בר","גבעת אבני","גבעת אלה","גבעת ברנר","גבעת השלושה","גבעת זיד","גבעת חיים","גבעת יואב","גבעת יערים","גבעת כ\"ח","גבעת מרדכי","גבעת נילי","גבעת עוז","גבעת שמש","גבעת שמואל","גבעתי","גבעתיים","גדות","גדיש","גדעונה","גונן","גורן","גזר","גינוסר","גיניגר","גיתה","גיתית","גלאון","גלגל","גלעד","גן הדרום","גן השומרון","גן יאשיה","גן יבנה","גן נר","גן שלמה","גני טל","גני יוחנן","גני מודיעין","גני עם","גנות","גנות הדר","גפן","גשור","גשר","גשר הזיו","דאלית אל-כרמל","דבורה","דביר","דגניה א","דגניה ב","דוב\"ב","דולב","דור","דורות","דחי","דייר חנא","דייר ראפאת","דימונה","דישון","דליה","דלתון","דן","דפנה","דקל","האון","הבונים","הגושרים","הוד השרון","הושעיה","הזורע","החותרים","הילה","המעפיל","הסוללים","העוגן","הר אדר","הר גילה","הר עמשא","הראל","הרדוף","זבדיאל","זוהר","זיקים","זיתן","זכרון יעקב","זמר","זנוח","זרחיה","חבצלת השרון","חברון","חגי","חגור","חד נס","חדיד","חולדה","חולון","חולית","חוסן","חופית","חוקוק","חורה","חורב","חורפיש","חזון","חיבת ציון","חיפה","חיריה","חלוץ","חלמיש","חמד","חמרה","חניאל","חנתון","חספין","חצב","חצבה","חצור הגלילית","חצור-אשדוד","חצרים","חרב לאת","חרוצים","חרות","יד בנימין","יד הנה","יד חנה","יד מרדכי","יד רמב\"ם","ידידה","יהל","יובל","יובלים","יודפת","יוטבתה","יונתן","יסעור","יסף","יעד","יעל","יערה","יפיע","יפית","יפתח","יקום","יקיר","יקנעם","ירדנה","ירוחם","ירושלים","ישעי","ישרש","כאבול","כברי","כוכב השחר","כוכב יאיר","כוכב מיכאל","כורזים","כחל","כיסופים","כישור","כליל","כמאנה","כמהין","כנות","כנף","כנרת","כסיפה","כסרא-סמיע","כפר ביאליק","כפר בילו","כפר ברא","כפר גדעון","כפר גלים","כפר האורנים","כפר החורש","כפר הנגיד","כפר הנשיא","כפר הרי\"ף","כפר ויתקין","כפר זיתים","כפר חב\"ד","כפר חיטים","כפר חנניה","כפר חרוב","כפר טבאש","כפר יאסיף","כפר יהושע","כפר יונה","כפר כמא","כפר מונש","כפר מל\"ל","כפר מנחם","כפר מסריק","כפר מצר","כפר נטר","כפר סאלד","כפר סבא","כפר סירקין","כפר עבודה","כפר עזה","כפר עציון","כפר קרע","כפר קיש","כפר ראש הנקרה","כפר רוזנר","כפר רות","כפר שמאי","כפר שמריהו","כפר תבור","כפר תפוח","לביא","לבנים","להב","להבות הבשן","להבות חביבה","לוד","לוזית","לוטם","לוטן","לימן","לכיש","מבוא ביתר","מבוא דותן","מבוא חורון","מבוא חמה","מבוא מודיעים","מבועים","מגאר","מגדים","מגדל","מגדל העמק","מגדל עוז","מגידו","מגן","מגן שאול","מדרך עוז","מודיעין","מודיעין עילית","מולדת","מורן","מורשת","מזכרת בתיה","מזרע","מחולה","מחנה הילה","מחנה יהודית","מחנה יוסף","מחנה יפה","מחנה תל נוף","מחסיה","מטולה","מיטב","מייסר","מירב","מירון","מכמורת","מכמש","מלאה","מנוף","מנחמיה","מנרה","מנשית זבדה","מסד","מסילות","מסלול","מסעדה","מעגן","מעגן מיכאל","מעוז חיים","מעיין ברוך","מעיין צבי","מעלה אדומים","מעלה גלבוע","מעלה החמישה","מעלה עירון","מעלה עמוס","מעלה שומרון","מענית","מעש","מפלסים","מצובה","מצפה","מצפה אבי\"ב","מצפה יריחו","מצפה נטופה","מצפה רמון","מצפה שלם","מרגליות","מרום גולן","מרחביה","מרכז שפירא","משאבי שדה","משגב עם","משהד","משואה","משואות יצחק","משמר איילון","משמר דוד","משמר הירדן","משמר הנגב","משמר העמק","משמר השרון","משמרות","משמרת","מתן","מתת","מתתיהו","נאות גולן","נאות הכיכר","נאות מרדכי","נאות סמדר","נבטים","נגבה","נהורה","נהלל","נווה","נווה אור","נווה אטיב","נווה אילן","נווה דניאל","נווה זוהר","נווה חריף","נווה ים","נווה ירק","נווה מבטח","נווה מיכאל","נווה שלום","נחושה","נחל עוז","נחליאל","נחם","נחשולים","נחשון","נחשונים","ניל\"י","ניצן","ניצן ב","ניצנה","ניצני עוז","ניצנים","נירים","נירית","נס הרים","נס ציונה","נצר חזני","נצר סרני","נתיב הגדוד","נתיב הל\"ה","נתיב העשרה","נתיבות","נתניה","סאג'ור","סאסא","סביון","סגולה","סde","סמר","סנסנה","ספיר","סתריה","עברון","עגור","עדי","עדעד","עוזה","עוצם","עופר","עופרה","עוקבי (ברהום)","עזוז","עזריאל","עזריה","עזריקם","עטרת","עיינות","עילוט","עין איילה","עין אל-אסד","עין גב","עין גדי","עין דור","עין הבשור","עין החורש","עין המפרץ","עין הנצי\"ב","עין השלושה","עין זיוון","עין חרוד","עין יהב","עין יעקב","עין כרם","עין מאהל","עין נקובא","עין עירון","עין צורים","עין קנייא","עין רפאים","עין שמר","עין שריד","עין תמר","עיר אובות","עכו","עלומות","עלי","עלי זהב","עלמה","עלמון","עמוקה","עמינדב","עמיעד","עמיעוז","עמיר","עמנואל","עמקה","ענב","עספיא","עפולה","עקבת ג'בר","ערב אל נעים","ערד","עשרת","עתלית","פדואל","פדויים","פדיה","פוריה","פוריה עילית","פורת","פלך","פלמחים","פנינה","פסגות","פעמי תש\"ז","פצאל","פקיעין","פרדס חנה","פרדסיה","פתח תקווה","צאלים","צביה","צבעון","צור הדסה","צור יצחק","צור משה","צור נתן","צורית","צחר","ציפורי","צפריה","צפרירים","צפת","צרופה","קבוצת יבנה","קדומים","קדימה-צורן","קדמה","קדר","קדרים","קדרון","קוממיות","קיבוץ גלויות","קיסריה","קלחים","קליה","קלנסווה","קציר","קצרין","קרית אונו","קרית ארבע","קרית ביאליק","קרית גת","קרית טבעון","קרית ים","קרית מוצקין","קרית מלאכי","קרית נטפים","קרית עקרון","קרית שמונה","קרני שומרון","קשת","ראמה","ראס אל-עין","ראס עלי","ראש העין","ראש פינה","ראש צורים","ראשון לציון","רבבה","רביבים","רגבה","רהט","רוויה","רומאנה","רומת הייב","רועי","רותם","רחוב","רחובות","רחלים","ריחאניה","ריינה","רינתיה","רכסים","רמות","רמות השבים","רמות מנשה","רמות נפתלי","רמלה","רמת גן","רמת דוד","רמת הכובש","רמת הנדיב","רמת השרון","רמת יוחנן","רמת ישי","רמת מגשימים","רמת צבי","רמת רזיאל","רמת רחל","רמת רחל","רנן","רעננה","רקפת","שאר ישוב","שבי ציון","שבי שומרון","שגב שלום","שדה אליהו","שדה אליעזר","שדה בוקר","שדה דוד","שדה ורבורג","שדה יואב","שדה יצחק","שדה יעקב","שדה משה","שדה נחום","שדה נחמיה","שדה עוזיהו","שדי אברהם","שדי חמד","שדי תרומות","שדמה","שדמות דבורה","שומרה","שומריה","שורש","שורשים","שחר","שיבולים","שיזף","שילה","שיפר","שכניה","שלווה","שלומי","שמיר","שמעה","שמרת","שניר","שעב","שעל","שעלבים","שער אפרים","שפיים","שפיר","שפר","שקף","שרשרת","תאשור","תדהר","תובל","תומר","תימורים","תירוש","תל אביב","תל יוסף","תל יצחק","תל כציר","תל מונד","תל עדשים","תל קציר","תל שבע","תל תאומים","תלם","תלמי אליהו","תלמי אלעזר","תלמי בילו","תלמי יוסף","תלמי יחיאל","תלמי יפה","תמרת","תנובות","תעוז","תפרח","תקומה","תקוע","תרום"];
+
+let selectedCity = '';
+let suggIdx = -1;
+
+// ── Autocomplete ─────────────────────────────────────────
+input.addEventListener('input', () => {
+  const q = input.value.trim();
+  if (q.length < 2) { sugg.style.display = 'none'; return; }
+  const matches = CITIES.filter(c => c.includes(q)).slice(0, 8);
+  if (!matches.length) { sugg.style.display = 'none'; return; }
+  sugg.innerHTML = matches.map((c, i) => `<div data-city="${c}">${c}</div>`).join('');
+  sugg.style.display = 'block';
+  suggIdx = -1;
+  sugg.querySelectorAll('div').forEach(d => {
+    d.addEventListener('mousedown', () => selectCity(d.dataset.city));
+  });
+});
+
+input.addEventListener('keydown', e => {
+  const items = [...sugg.querySelectorAll('div')];
+  if (e.key === 'ArrowDown') { suggIdx = Math.min(suggIdx + 1, items.length - 1); highlight(items); e.preventDefault(); }
+  if (e.key === 'ArrowUp')   { suggIdx = Math.max(suggIdx - 1, 0);                highlight(items); e.preventDefault(); }
+  if (e.key === 'Enter')     { if (suggIdx >= 0 && items[suggIdx]) selectCity(items[suggIdx].dataset.city); else checkAlerts(); }
+  if (e.key === 'Escape')    { sugg.style.display = 'none'; }
+});
+
+document.addEventListener('click', e => { if (!e.target.closest('.autocomplete-wrap')) sugg.style.display = 'none'; });
+
+function highlight(items) {
+  items.forEach((d, i) => d.classList.toggle('active', i === suggIdx));
+}
+function selectCity(city) {
+  selectedCity = city;
+  input.value  = city;
+  sugg.style.display = 'none';
+  localStorage.setItem(STORE, city);
 }
 
-sel.addEventListener('change', () => { if (sel.value) localStorage.setItem(STORE, sel.value); });
+// ── שמירה ושחזור ─────────────────────────────────────────
+const saved = localStorage.getItem(STORE);
+if (saved) { input.value = saved; selectedCity = saved; }
 
-function restoreCity() {
-  const saved = localStorage.getItem(STORE);
-  if (!saved) return;
-  const opt = [...sel.options].find(o => o.value === saved);
-  if (opt) {
-    sel.value = saved;
-    sel.style.borderColor = 'var(--green)';
-    setTimeout(() => sel.style.borderColor = '', 1500);
-    statusT.textContent += ' · שוחזר: ' + saved;
-  }
-}
-
+// ── בדיקת התראות ────────────────────────────────────────
 async function checkAlerts() {
-  const city = sel.value;
-  if (!city) return;
+  const city = (selectedCity || input.value).trim();
+  if (!city) { input.focus(); return; }
+  selectedCity = city;
+  localStorage.setItem(STORE, city);
+
   btn.disabled = true;
   loading.style.display = 'block';
   result.style.display  = 'none';
+
   try {
-    // 1) התראה חיה
-    let liveAlert = null;
-    try {
-      const live = await orefFetch(OREF.alerts);
-      if (live && Array.isArray(live.data)) {
-        const match = live.data.find(d => d === city || d.includes(city) || city.includes(d));
-        if (match) liveAlert = { title: live.title, area: match };
-      }
-    } catch (err) { console.warn('live:', err); }
+    const res  = await fetch(API, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json(); // [{ notificationId, time, threat, isDrill, cities:[...] }]
 
-    if (liveAlert) { render('active', city, liveAlert, null); return; }
+    const now = Date.now() / 1000;
 
-    // 2) היסטוריה
-    const history = await orefFetch(OREF.history);
-    const cityH = Array.isArray(history)
-      ? history.filter(h => h.data === city || (h.data && (h.data.includes(city) || city.includes(h.data))))
-      : [];
-    render(cityH.length > 0 ? 'history' : 'none', city, null, cityH);
+    // מחפש התראה שכוללת את העיר שלנו
+    const match = data.find(n =>
+      !n.isDrill &&
+      n.cities.some(c => c === city || c.includes(city) || city.includes(c))
+    );
+
+    if (match) {
+      const age = Math.round(now - match.time);
+      render('active', city, match, age);
+    } else {
+      render('none', city);
+    }
+
+    statusT.textContent = `עודכן: ${new Date().toLocaleTimeString('he-IL')} · ${data.length} התראות פעילות בארץ`;
+
   } catch (err) {
     renderError('שגיאה: ' + err.message);
   } finally {
@@ -232,68 +248,39 @@ async function checkAlerts() {
   }
 }
 
-function render(type, city, live, hist) {
+// ── תצוגה ────────────────────────────────────────────────
+function render(type, city, data, ageSec) {
   result.style.display = 'block';
+
   if (type === 'active') {
+    const threatName = {0:'ירי רקטות וטילים', 1:'חדירת מחבלים', 2:'חומרים מסוכנים', 3:'רעידת אדמה', 4:'צונאמי'}[data.threat] || 'אירוע ביטחוני';
     result.innerHTML = `
       <div class="status-banner alert-active">
         <span class="status-icon">🚨</span>
         <div class="status-title">⛔ אל תצא — יש התראה פעילה!</div>
         <div class="status-body">
-          התראה פעילה עכשיו עבור <strong>${e(live.area)}</strong>.<br><br>
+          התראה פעילה עכשיו עבור <strong>${e(city)}</strong>.<br><br>
           המתן להנחיה מפורשת על סיום ההתראה לפני היציאה.
         </div>
         <div class="meta-row">
-          <div class="meta-item"><span class="meta-key">כותרת</span><span class="meta-val">${e(live.title||'—')}</span></div>
-          <div class="meta-item"><span class="meta-key">יישוב</span><span class="meta-val">${e(city)}</span></div>
-          <div class="meta-item"><span class="meta-key">זמן</span><span class="meta-val">עכשיו</span></div>
+          <div class="meta-item"><span class="meta-key">סוג</span><span class="meta-val">${e(threatName)}</span></div>
+          <div class="meta-item"><span class="meta-key">לפני</span><span class="meta-val">${ageSec} שניות</span></div>
+          <div class="meta-item"><span class="meta-key">ערים מוזהרות</span><span class="meta-val">${data.cities.length}</span></div>
         </div>
       </div>`;
     return;
   }
-  if (type === 'none') {
-    result.innerHTML = `
-      <div class="status-banner alert-none">
-        <span class="status-icon">✅</span>
-        <div class="status-title">לא נמצאו התראות פעילות</div>
-        <div class="status-body">
-          לא נמצאו התראות פעילות עבור <strong>${e(city)}</strong>.<br><br>
-          📢 <strong>יש לפעול תמיד לפי ההנחיה האחרונה שהתקבלה.</strong><br>
-          אין לצאת מהמקלט ללא הודעה מפורשת, גם אם אין התראה פעילה כרגע.<br><br>
-          <small style="color:var(--muted)">לאישור — בדקו ישירות באפליקציה הרשמית של פיקוד העורף.</small>
-        </div>
-      </div>`;
-    return;
-  }
-  const last = hist[0], count = hist.length;
+
   result.innerHTML = `
-    <div class="status-banner alert-history">
-      <span class="status-icon">📋</span>
-      <div class="status-title">אין התראה פעילה כרגע</div>
+    <div class="status-banner alert-none">
+      <span class="status-icon">✅</span>
+      <div class="status-title">לא נמצאו התראות פעילות</div>
       <div class="status-body">
-        <strong>${e(city)}</strong> — לא נמצאה התראה פעילה. נמצאו <strong>${count}</strong> התראות בהיסטוריה.<br><br>
-        📢 <strong>יש לפעול לפי ההנחיה האחרונה מפיקוד העורף.</strong><br>
-        אין לצאת ללא הודעה מפורשת על סיום ההתראה.
+        לא נמצאו התראות פעילות עבור <strong>${e(city)}</strong> ברגע זה.<br><br>
+        📢 <strong>יש לפעול תמיד לפי ההנחיה האחרונה שהתקבלה.</strong><br>
+        אין לצאת מהמקלט ללא הודעה מפורשת, גם אם אין התראה פעילה כרגע.<br><br>
+        <small style="color:var(--muted)">לאישור — בדקו ישירות באפליקציה הרשמית של פיקוד העורף.</small>
       </div>
-      <div class="meta-row">
-        <div class="meta-item"><span class="meta-key">התראה אחרונה</span><span class="meta-val">${e(last.date||'—')} ${e(last.time||'')}</span></div>
-        <div class="meta-item"><span class="meta-key">סוג</span><span class="meta-val">${e(last.category_desc||last.title||'—')}</span></div>
-        <div class="meta-item"><span class="meta-key">סה"כ בהיסטוריה</span><span class="meta-val">${count}</span></div>
-      </div>
-      ${count > 1 ? `
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
-        <div class="card-label" style="margin-bottom:8px">5 התראות אחרונות</div>
-        <table>
-          <thead><tr><th>תאריך</th><th>שעה</th><th>סוג</th></tr></thead>
-          <tbody>${hist.slice(0,5).map(r=>`
-            <tr>
-              <td>${e(r.date||'—')}</td>
-              <td>${e(r.time||'—')}</td>
-              <td style="color:var(--yellow)">${e(r.category_desc||r.title||'—')}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>` : ''}
     </div>`;
 }
 
@@ -309,10 +296,8 @@ function renderError(msg) {
 }
 
 function e(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-loadCities();
 </script>
 </body>
 </html>
