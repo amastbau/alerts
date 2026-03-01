@@ -228,9 +228,24 @@ async function checkAlerts() {
   result.style.display  = 'none';
 
   try {
-    const res  = await fetch(API, { signal: AbortSignal.timeout(8000) });
+    // אם מדובר ב-URL בדיקה (אותו origin) — קרא ישירות
+    // אחרת — עבור allorigins כדי לעקוף CORS
+    const isSameOrigin = API.startsWith(location.origin) || API.startsWith('./');
+    const fetchUrl = isSameOrigin
+      ? API
+      : `https://api.allorigins.win/get?url=${encodeURIComponent(API)}`;
+
+    const res = await fetch(fetchUrl, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json(); // [{ notificationId, time, threat, isDrill, cities:[...] }]
+
+    let data;
+    if (isSameOrigin) {
+      data = await res.json();
+    } else {
+      const wrapper = await res.json();   // { contents: "...", status: {...} }
+      if (!wrapper.contents) throw new Error('תגובה ריקה מה-proxy');
+      data = JSON.parse(wrapper.contents);
+    }
 
     const now = Date.now() / 1000;
 
